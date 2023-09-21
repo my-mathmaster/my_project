@@ -1,71 +1,104 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+//三子棋//一些想法和疑问1.提升电脑胜率，听过什么局势判别系统，考虑简单实现的想法
+//电脑走棋时先进行判断，需要对自己下过的棋的位置储存，当能够形成赢的条件时会取消使用rand函数进行随机落子
+//2.整段代码在判断结果时采用穷举的办法，这使得想改为n子棋后判断结果
+//变得不容易，即使使用循环。
+//3.收获，对rand函数的学习过程中顺带实现了猜数字的游戏，猜数字和三子棋
+//都用到了把一个数字通过取模再加减的方式控制在特定的范围里，学到了
+//4.输赢的标记符号和人类电脑的棋子设置成一样使得判断究竟是谁赢了变得简便。
+//本身自己考虑的是假设都是人类先下，引入count变量来计算步数，当棋局判
+//定结束时，再根据count奇偶性来决定谁赢。
+//5.考虑到面向的玩家并不一定懂得数组从零开始，故要进行减一操作
+//而电脑走棋时无需考虑，故直接生成随机数再取模就可，无需再调整
+//6.在用iffull判断和棋时，参考代码对此函数的返回值使用了static修饰，why?
+
+
+
+
+
+
 #include "game.h"
-//由于时间原因，以我的角度还可以优化的空间有1.第一次排查时不会被炸死
-//2当满足坐标本身不是累，且周围八个坐标也存在没雷的坐标时可以实现展开，貌似可以用函数递归？
-//3.没有实现标记功能
-//收获：1.在计算周围坐标是否有雷时，用字符型数字加减算总和来实现确实没想到，本身考虑的是拿周围八个坐标
-//与'1'进行比较  2.虽然要的是9*9的，但是引入了11*11，防止了在计算周围雷数目时边界棋子出现越界
-//访问的情况
-
-
-
-
-
-
-void game()
-{
-	char mine[ROWS][COLS] = { 0 };
-	char show[ROWS][COLS] = { 0 };
-
-	//两个数组的初始化
-	//mine数组元素全部初始化为字符0
-	//show数组元素全部初始化为字符*
-	Init_board(mine, ROWS, COLS, '0');
-	Init_board(show, ROWS, COLS, '*');
-
-
-	//打印棋盘,以便让玩家可以清楚的选择相应的位置对应的坐标
-	Display_board(show, ROW, COL);
-
-
-	//布置地雷
-	Set_mine(mine, ROW, COL);
-
-	//排查地雷
-	Find_mine(mine, show, ROW, COL);
-	//两个数组都传入是因为排查时两个数组元素都会有相应的改变
-	//排查结束，再打印一次地雷棋盘，向玩家展示地雷的位置
-	Display_board(mine, ROW, COL);
-}
-
 
 void menu()
 {
-	printf("*******************************\n");
-	printf("*********  1. play  ***********\n");
-	printf("*********  0. exit  ***********\n");
-	printf("*******************************\n");
+	printf("********************************\n");
+	printf("*********  1. play     *********\n");
+	printf("*********  0. exit     *********\n");
+	printf("********************************\n");
 }
 
+void game()
+{
+	char ret = 0;
+	//存放下棋的数据
+	char board[ROW][COL] = { 0 };
+	//初始化棋盘为全空格
+	InitBoard(board, ROW, COL);
+	//打印棋盘
+	DisplayBoard(board, ROW, COL);
+	while (1)
+	{
+		//玩家下棋
+		player_move(board, ROW, COL);
+		DisplayBoard(board, ROW, COL);
+		//判断输赢
+		ret = is_win(board, ROW, COL);
+		if (ret != 'C')
+		{
+			break;
+		}
+		//电脑下棋
+		computer_move(board, ROW, COL);//随机下棋
+		DisplayBoard(board, ROW, COL);
+		ret = is_win(board, ROW, COL);
+		if (ret != 'C')
+		{
+			break;
+		}
+	}
+	if (ret == '*')
+	{
+		printf("玩家赢了\n");
+	}
+	else if (ret == '#')
+	{
+		printf("电脑赢了\n");
+	}
+	else
+	{
+		printf("平局\n");
+	}
+	//DisplayBoard(board, ROW, COL);
+}
+
+//
+//为了增强可读性，在这里给出结果标记符号
+//玩家赢 - '*'
+//电脑赢 - '#'
+//平局   - 'Q'
+//继续   - 'C'
+//
 
 void test()
 {
 	int input = 0;
+	srand((unsigned int)time(NULL));
+
 	do
 	{
 		menu();
-		srand((unsigned int)time(NULL));
-		printf("请选择：");
+		printf("请选择:>");
 		scanf("%d", &input);
 		switch (input)
 		{
 		case 1:
-			game();
+			game();//游戏
 			break;
 		case 0:
-			printf("退出扫雷！\n");
+			printf("退出游戏，去c楼通宵\n");
 			break;
 		default:
-			printf("输入错误，请重新输入！\n");
+			printf("是不是在b楼迷路让你的小脑瓜都晕了，重新选择哟\n");
 			break;
 		}
 	} while (input);
